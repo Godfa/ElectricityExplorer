@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from 'react';
-import { Upload, Zap, TrendingUp, TrendingDown, Info, FileText } from 'lucide-react';
-import { parseElectricityFile, DataPoint } from './utils/dataParser';
-import { calculateComparison, ComparisonResult } from './utils/calculator';
+import { useState } from 'react';
+import { Zap, Info, FileText } from 'lucide-react';
+import { parseElectricityFile } from './utils/dataParser';
+import { calculateComparison } from './utils/calculator';
+import type { ComparisonResult } from './utils/calculator';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-  LineChart, Line, Legend, AreaChart, Area
+  Legend, AreaChart, Area
 } from 'recharts';
 
 function App() {
@@ -133,7 +134,7 @@ function App() {
                   <YAxis stroke="var(--text-muted)" />
                   <Tooltip
                     contentStyle={{ background: 'var(--bg)', border: '1px solid var(--border)' }}
-                    formatter={(value: number) => [`${value.toFixed(2)} €`]}
+                    formatter={(value) => [`${Number(value).toFixed(2)} €`]}
                   />
                   <Legend />
                   <Bar name="Pörssisähkö (€)" dataKey="spotPrice" fill="var(--primary)" radius={[4, 4, 0, 0]} />
@@ -159,7 +160,7 @@ function App() {
                   <YAxis stroke="var(--text-muted)" />
                   <Tooltip
                     contentStyle={{ background: 'var(--bg)', border: '1px solid var(--border)' }}
-                    formatter={(value: number) => [`${value.toFixed(2)} €`]}
+                    formatter={(value) => [`${Number(value).toFixed(2)} €`]}
                   />
                   <Area type="monotone" name="Kumulatiivinen säästö (€)" dataKey="cumulativeSavings" stroke="var(--primary)" fillOpacity={1} fill="url(#colorSavings)" />
                 </AreaChart>

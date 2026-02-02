@@ -1,4 +1,4 @@
-import { DataPoint } from './dataParser';
+import type { DataPoint } from './dataParser';
 
 export interface ComparisonResult {
     spotTotal: number;
@@ -22,13 +22,22 @@ export const calculateComparison = (
     fixedPriceSnt: number,
     marginSnt: number = 0.5 // Default margin
 ): ComparisonResult => {
-    // Map prices for fast lookup (ISO string as key)
-    const priceMap = new Map<string, number>();
+    // Map prices for fast lookup by hour
+    // Key format: "YYYY-MM-DD-HH" to avoid timezone issues
+    const priceMap = new Map<string, number[]>();
     prices.forEach(p => {
-        // Round to nearest hour to match consumption
         const d = new Date(p.timestamp);
-        d.setMinutes(0, 0, 0);
-        priceMap.set(d.toISOString(), p.value);
+        // Create key from year, month, day, hour (handles sub-hourly data)
+        const key = `${d.getUTCFullYear()}-${d.getUTCMonth()}-${d.getUTCDate()}-${d.getUTCHours()}`;
+        const existing = priceMap.get(key) || [];
+        existing.push(p.value);
+        priceMap.set(key, existing);
+    });
+
+    // Average prices for each hour (for 15-min data)
+    const hourlyPriceMap = new Map<string, number>();
+    priceMap.forEach((values, key) => {
+        hourlyPriceMap.set(key, values.reduce((a, b) => a + b, 0) / values.length);
     });
 
     let spotTotal = 0;
@@ -38,9 +47,21 @@ export const calculateComparison = (
 
     consumption.forEach(c => {
         const d = new Date(c.timestamp);
-        d.setMinutes(0, 0, 0);
-        const iso = d.toISOString();
-        const spotPrice = priceMap.get(iso);
+        // Try multiple timezone offsets (UTC, UTC+2, UTC+3 for Finland)
+        const offsets = [0, 2, 3];
+        let spotPrice: number | undefined;
+        let matchedDate = d;
+
+        for (const offset of offsets) {
+            const adjusted = new Date(d.getTime() - offset * 60 * 60 * 1000);
+            const key = `${adjusted.getUTCFullYear()}-${adjusted.getUTCMonth()}-${adjusted.getUTCDate()}-${adjusted.getUTCHours()}`;
+            const price = hourlyPriceMap.get(key);
+            if (price !== undefined) {
+                spotPrice = price;
+                matchedDate = adjusted;
+                break;
+            }
+        }
 
         if (spotPrice !== undefined) {
             const spotCost = c.value * (spotPrice + marginSnt) / 100; // to €
