@@ -93,7 +93,7 @@ function App() {
           <div className="info-box" style={{ background: 'var(--glass)', padding: '1rem', borderRadius: '0.5rem', marginTop: '1rem' }}>
             <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
               <Info size={16} style={{ verticalAlign: 'text-bottom', marginRight: '5px' }} />
-              Vinkki: Hae kulutusdata Oma.Datahubista ja hinta-arkisto esim. Sahkotin.fi -palvelusta.
+              Vinkki: Hae kulutusdata Helenistä ja hinta-arkisto porssisahko.net -palvelusta.
             </p>
           </div>
         </div>
